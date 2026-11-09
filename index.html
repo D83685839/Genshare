@@ -145,7 +145,7 @@ sb.auth.onAuthStateChange(function(ev,s){
 /* ---------- Feed ---------- */
 async function loadFeed(){
   var f=$('feed');if(!feed.length)f.innerHTML='<p class="note">Loading…</p>';
-  var r=await sb.from('posts').select('id,user_id,image_path,caption,created_at,profiles(username,full_name),likes(user_id),comments(id)').order('created_at',{ascending:false}).limit(30);
+  var r=await sb.from('posts').select('id,user_id,image_path,caption,created_at,profiles!posts_user_id_fkey(username,full_name),likes(user_id),comments(id)').order('created_at',{ascending:false}).limit(30);
   if(r.error){f.innerHTML='<p class="msg">Could not load posts: '+esc(r.error.message)+'</p>';return}
   feed=r.data;renderFeed();
 }
@@ -186,7 +186,7 @@ $('feed').onclick=async function(e){
 };
 async function loadComments(id,box){
   box.innerHTML='Loading…';
-  var r=await sb.from('comments').select('body,created_at,profiles(username)').eq('post_id',id).order('created_at');
+  var r=await sb.from('comments').select('body,created_at,profiles!comments_user_id_fkey(username)').eq('post_id',id).order('created_at');
   var rows=(r.data||[]).map(function(c){return '<p><b>'+esc(c.profiles?c.profiles.username:'member')+'</b> '+esc(c.body)+'</p>'}).join('');
   box.innerHTML=rows+'<form><input type="text" maxlength="300" placeholder="Write a comment" aria-label="Comment"><button class="s" type="submit">Send</button></form>';
   box.querySelector('form').onsubmit=async function(ev){ev.preventDefault();
